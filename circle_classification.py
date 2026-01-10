@@ -93,7 +93,8 @@ class Loss:
     def forward(self, y, t):
         self.y = y
         self.t = t
-        return 1 / 2 * np.mean((y - t)**2)
+        s = 1e-7
+        return - (self.t * np.log(self.y + s) + (1 - self.t) * np.log(1 - self.y + s))
     def backward(self):
         return (self.y - self.t) / self.y.shape[0]
 
