@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import math
+import numpy as np
 import random
 import argparse
 
@@ -35,99 +35,120 @@ def get_args():
 
 args = get_args()
 
-def sigmoid(x):
-    return 1 / (1 + math.exp(-x))
+def print_vec(text, vec):
+    print("*** " + text + " ***")
+    print(vec)
+    print("shape: " + str(vec.shape))
+    print("")
 
-def dsigmoid(y):
-    return y * (1 - y)
+def generate_training_data(n = 300, r = 1.0, k = 2, seed = 0):
+    random_generator = np.random.default_rng(seed)
+    x = random_generator.uniform(- k * r, k * r, size = (n, 2))
+    t = np.zeros((n, 1), dtype = np.float32)
+    for i in range(n):
+        xi = x[i, 0]
+        yi = x[i, 1]
+        if xi**2 + yi**2 <= r**2:
+            t[i, 0] = 1.0
+        else:
+            t[i, 0] = 0.0
+    return x, t
 
 class Affine:
-    def __init__(self, w, b):
-        self.w = w
-        self.b = b
-        self.x = None
-
+    def __init__(self, input_dimension, output_dimension, seed = 0):
+        random_generator = np.random.default_rng(seed)
+        self.W = random_generator.standard_normal((input_dimension, output_dimension))
+        self.b = np.zeros(output_dimension)
     def forward(self, x):
         self.x = x
-        return self.w[0] * x[0] + self.w[1] * x[1] + self.b
+        return x @ self.W + self.b
+    def backward(self, dy):
+        self.dW = self.x.T @ dy
+        self.db = np.sum(dy, axis = 0)
+        dx = dy @ self.W.T
+        return dx
 
-    def backward(self, dL_dz):
-        dL_dw = [dL_dz * self.x[0], dL_dz * self.x[1]]
-        dL_db = dL_dz * 1
-        return dL_dw, dL_db
-
-    def update_parameter(self, dL_dy):
-        dL_dw = [dL_dy * self.x[0], dL_dy * self.x[1]]
-        self.w[0] = self.w[0] - self.alpha * dL_dw[0]
-        self.w[1] = self.w[1] - self.alpha * dL_dw[1]
-        self.b = dL_dy * 1
+class ReLU:
+    def __init__(self):
+        self.x = None
+    def forward(self, x):
+        self.x = x
+        return np.where(x > 0, x, 0)
+    def backward(self, dy):
+        return np.where(self.x > 0, dy, 0)
 
 class Sigmoid:
     def __init__(self):
         self.y = None
-
-    def forward(self, y):
-        self.y = sigmoid(y)
+    def forward(self, x):
+        self.y = 1 / (1 + np.exp(-x))
         return self.y
+    def backward(self, dy):
+        return dy * self.y * ( 1 - self.y )
 
-    def backward(self, dL_dy):
-        return dL_dy * dsigmoid(self.y)
+class Loss:
+    def __init__(self):
+        self.y = None
+        self.t = None
+    def forward(self, y, t):
+        self.y = y
+        self.t = t
+        return 1 / 2 * np.mean((y - t)**2)
+    def backward(self):
+        return (self.y - self.t) / self.y.shape[0]
 
-def loss(z, t):
-    return 1 / 2 * (z - t)**2
+class Model:
+    def __init__(self, input_dimension, hidden_dimension, seed = 0):
+        self.layers = [
+                Affine(input_dimension, hidden_dimension, seed = seed),
+                ReLU(),
+                Affine(hidden_dimension, 1, seed = seed),
+                Sigmoid(),
+                ]
+        self.loss_function = Loss()
 
-def dloss(z, t):
-    return z - t
+    def forward(self, x):
+        v = x
+        for layer in self.layers:
+            v = layer.forward(v)
+        self.out = v
+        return v
 
-# 教師データの数
-N = args.n
-# 半径
-R = args.r
+    def loss_calc(self, t):
+        self.loss = self.loss_function.forward(self.out, t)
+        return self.loss
 
-# 入力
-X = []
-# ラベル
-T = []
+    def backward(self):
+        ref = self.loss_function.backward()
+        for layer in reversed(self.layers):
+            ref = layer.backward(ref)
+        return ref
 
-# 教師データの作成
-for _ in range(N):
-    p = random.uniform(-R, R)
-    q = random.uniform(-R, R)
-    X.append([p, q])
-    T.append(1 if p**2 + q**2 <= R**2 else 0)
-    #print(f"Data: {X[-1]} {T[-1]}")
+    def step(self, alpha):
+        for layer in self.layers:
+            if isinstance(layer, Affine):
+                layer.W = layer.W - alpha * layer.dW
+                layer.b = layer.b - alpha * layer.db
 
-w = [random.uniform(-R, R), random.uniform(-R, R)]
-b = random.uniform(-R, R)
+model = Model(2, 4, seed = 0)
 
 # 学習率
 alpha = args.alpha
 epochs = args.epochs
 
-affine = Affine(w, b)
-activation = Sigmoid()
+data, label = generate_training_data(args.n, args.r, seed = 0)
 
-# 学習
-for epoch in range(epochs):
-    for x, t in zip(X, T):
-        # 順方向
-        z = affine.forward(x)
-        y = activation.forward(z)
-        L = loss(y, t)
-        # 逆伝搬
-        dL_dy = dloss(y, t)
-        dL_dz = activation.backward(dL_dy)
-        dL_dw, dL_db = affine.backward(dL_dz)
-        # パラメータの調整
-        affine.w[0] = affine.w[0] - alpha * dL_dw[0]
-        affine.w[1] = affine.w[1] - alpha * dL_dw[1]
-        affine.b    = affine.b    - alpha * dL_db
-        #print(f"Loss: {L}")
+# Train
+for _ in range(epochs):
+    model.forward(data)
+    model.loss_calc(label)
+    # print_vec("out", model.out)
+    # print(f"{model.loss}")
+    model.backward()
+    model.step(alpha)
 
-print(f"Train: {w}, {b}")
-
-x = args.input
-z = affine.forward(x)
-y = activation.forward(z)
-print(f"Infer: {y}")
+# Infer
+x = np.array([[args.input[0], args.input[1]]])
+v = model.forward(x)
+print_vec("RESULT", v)
 

@@ -1,6 +1,4 @@
 #!/bin/bash
 
-./circle_classification.py -r 2.5 --alpha 0.001 --epochs 100 -n 10000 2.5 2.5
-
-launch.sh
+./circle_classification.py  0.0  0.0 --epochs 100 --alpha 7.5 -n 100 -r 1.0
 
