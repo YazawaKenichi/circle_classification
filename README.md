@@ -28,8 +28,10 @@ $$
 
 ## 実験結果
 <img src = "https://github.com/YazawaKenichi/circle_classification/blob/main/img/result-plot.png">
+学習後の確率の勾配。黄色が円内の確率が高く、紫色が円外の確率が高い。
 
 <img src = "https://github.com/YazawaKenichi/circle_classification/blob/main/img/loss-graph.png">
+エポックごとの平均損失。
 
 |入力座標|(0, 0)|(0.6, 0.75)|(0.6, 0.75)
 |:---|:---|:---|:---
