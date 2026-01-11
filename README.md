@@ -13,7 +13,7 @@
 ## 使用したモデル
 以下の構成の多層パーセプトロンを用いた。
 
-<img src="https://github.com/YazawaKenichi/circle_classification/blob/main/img/nn.png">
+<img width="50%" src="https://github.com/YazawaKenichi/circle_classification/blob/main/img/nn.png">
 
 出力層にシグモイド関数を用いることで、出力を「円の内側である確率」として解釈できる。
 
