@@ -24,6 +24,11 @@ def get_args():
             default = 0.1,
             help = "学習率 (default: 0.1)")
     parser.add_argument(
+            "--seed",
+            type = int,
+            default = int(time.time()),
+            help = "シード値")
+    parser.add_argument(
             "-n",
             type = int,
             default = 100,
@@ -143,7 +148,7 @@ class Loss:
         self.y = y
         self.t = t
         s = 1e-7    # nan 回避
-        return - (self.t * np.log(self.y + s) + (1 - self.t) * np.log(1 - self.y + s))
+        return np.mean(- (self.t * np.log(self.y + s) + (1 - self.t) * np.log(1 - self.y + s)))
     def backward(self):
         # dL/dy
         s = 1e-7    # nan 回避
@@ -186,13 +191,13 @@ class Model:
                 layer.W = layer.W - alpha * layer.dLdW
                 layer.b = layer.b - alpha * layer.dLdb
 
-model = Model(2, 4, seed = int(time.time()))
+model = Model(2, 4, seed = args.seed)
 
 # 学習率
 alpha = args.alpha
 epochs = args.epochs
 
-data, label = generate_training_data(args.n, args.r, seed = 0)
+data, label = generate_training_data(args.n, args.r, k = 1.5, seed = 0)
 
 # Train
 for _ in range(epochs):
