@@ -1,4 +1,4 @@
-# 
+# circle_classifier
 
 ## 概要
 2次元座標が円の内側にあるか外側にあるかを判別する2値分類器を、3層のパーセプトロンとして実装した。
@@ -50,11 +50,23 @@ $$
 で動作確認済み。
 
 ## 実行方法
+### クローン
 ``` bash
-git clone https://github.com/yazawakenichi/aaaaaaaaaaaaaaaaaaaaaaa
-cd aaaaaaaaaaaaaaaaaaaaa
-python3 -m venv venv
-venv/bin/pip install -r requirements.txt
+git clone https://github.com/YazawaKenichi/circle_classification
+cd circle_classification
+```
+
+### 必要なライブラリのインストール
+- numpy
+- argparse
+- matplotlib
+
+``` bash
+pip install -r requirements.txt
+```
+
+### 実行
+``` bash
 ./demo.sh
 ```
 
