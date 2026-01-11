@@ -55,7 +55,7 @@ def plot_data(data, label, r, path):
     plt.legend()
     plt.tight_layout()
     plt.savefig(path)
-    plt.show()
+    # plt.show()
 
 def plot_prediction(model, data, x, r, path):
     plt.figure(figsize=(6, 6))
@@ -65,14 +65,14 @@ def plot_prediction(model, data, x, r, path):
     plt.scatter(data[boundary, 0], data[boundary, 1], c="white", s=40, label="estimated boundary")
     theta = np.linspace(0, 2*np.pi, 400)
     plt.plot(r*np.cos(theta), r*np.sin(theta), c="green", linewidth=2)
-    plt.scatter(x[0, 0], x[0, 1], c="black", marker="x", s=100)
+    plt.scatter(x[0, 0], x[0, 1], c="red", marker="x", s=100)
     plt.gca().set_aspect("equal")
     plt.title(f"Model output")
     plt.colorbar(sc, label="output value")
     plt.legend()
     plt.tight_layout()
     plt.savefig(path)
-    plt.show()
+    # plt.show()
 
 def plot_loss(losses, path):
     plt.figure(figsize = (6, 4))
@@ -83,7 +83,7 @@ def plot_loss(losses, path):
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(path)
-    plt.show()
+    # plt.show()
 
 def generate_training_data(n = 300, r = 1.0, k = 2, seed = 0):
     random_generator = np.random.default_rng(seed)
@@ -204,12 +204,13 @@ class Model:
 
 model = Model(2, 4, seed = args.seed)
 
-print(f"Seed: {args.seed}")
-
 # 学習率
 alpha = args.alpha
 epochs = args.epochs
 b_path = f"./img/{args.seed}-{epochs}-{alpha}"
+
+print(f"Name: {b_path}")
+print(f"Seed: {args.seed}")
 
 # 教師データの作成
 data, label = generate_training_data(args.n, args.r, k = 1.5, seed = 0)

@@ -13,12 +13,12 @@
 ## 使用したモデル
 以下の構成の多層パーセプトロンを用いた。
 
-**ここに図**
+<img src="https://github.com/YazawaKenichi/circle_classification/blob/main/img/nn.png">
 
 出力層にシグモイド関数を用いることで、出力を「円の内側である確率」として解釈できる。
 
 ## 学習方法
-損失関数には、2値分類の交差エントロピー損失を用いた。[参考](https://qiita.com/pocokhc/items/d67b63ec9ca74b453093)
+損失関数には、2値分類の交差エントロピー損失を用いた。
 
 $$
 L = - ( t log(y) + (1 - t) log(1 - y))
@@ -27,14 +27,26 @@ $$
 ここで、tは正解のラベル、yはモデルの出力である。
 
 ## 実験結果
+epoch = 100
+alpha = 0.001
+教師データ数 = 1000
+からこの学習をはじめた。
+
 入力された座標に対するモデルの出力を図として確認した結果、
 円の内外に対応した出力が得られていることが分かった。
 
-<img src="https://github.com/YazawaKenichi/circle_classification/blob/main/img/1768110697-500-0.0005-prediction.png">
+境界に近い座標(0.6, 0.25)では、35% と低い確率であった
+教師データの数を1000から10000に変更して学習したところ確率は98.9%まで上がった
+
+|入力座標|(0, 0)|(0.6, 0.75)|(0.6, 0.75)
+|---|---|---|---|---
+|epoch|100|500|500
+|alpha|0.001|0.001|0.001
+|教師データ数|1000|1000|10000
+|最終的な損失|0.0849|0.0015|1.17e-05
+|円内の確率|0.749|0.345|0.989
 
 また、epoch の増加に伴って損失が減少していくことを確認できた。
-
-<img src="https://github.com/YazawaKenichi/circle_classification/blob/main/img/1768110697-500-0.0005-loss.png">
 
 ## 実行環境
 - Ubuntu 22.04
@@ -63,5 +75,8 @@ pip install -r requirements.txt
 ```
 
 ## 参考
-- [Lorem Ipsum](https://example.com)
+- [ryuichiueda/slides_marp - GitHub](https://github.com/ryuichiueda/slides_marp/tree/master/advanced_vision)
+- [基本的な出力層の活性化関数と損失関数の組み合わせまとめ](https://qiita.com/pocokhc/items/d67b63ec9ca74b453093)
+- [【ディープラーニング入門（第5回）】勾配降下法を学んでディープラーニングの学習について理解しよう - Qiita](https://qiita.com/kwi0303/items/e43efa6657ff4b6b59ad)
+- [深層学習／活性化関数たち](https://qiita.com/jun40vn/items/2ca86ab6b821ae20086c)
 
