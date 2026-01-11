@@ -27,6 +27,10 @@ $$
 ここで、tは正解のラベル、yはモデルの出力である。
 
 ## 実験結果
+<img src = "https://github.com/YazawaKenichi/circle_classification/blob/main/img/result-plot.png">
+
+<img src = "https://github.com/YazawaKenichi/circle_classification/blob/main/img/loss-graph.png">
+
 epoch = 100
 alpha = 0.001
 教師データ数 = 1000
