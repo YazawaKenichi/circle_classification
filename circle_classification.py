@@ -42,36 +42,47 @@ def get_args():
 
 args = get_args()
 
-def print_vec(text, vec):
-    print("*** " + text + " ***")
-    print(vec)
-    print("shape: " + str(vec.shape))
-    print("")
-
-def visualize(model, data, label, x, r):
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+def plot_data(data, label, r, path):
+    plt.figure(figsize=(6, 6))
     inside = label.flatten() == 1
     outside = ~inside
-    ax = axes[0]
-    ax.scatter(data[inside, 0], data[inside, 1], c="red", label="inside", s=20)
-    ax.scatter(data[outside, 0], data[outside, 1], c="blue", label="outside", s=20)
+    plt.scatter(data[inside, 0], data[inside, 1], c="red", label="inside", s=20)
+    plt.scatter(data[outside, 0], data[outside, 1], c="blue", label="outside", s=20)
     theta = np.linspace(0, 2*np.pi, 400)
-    ax.plot(r*np.cos(theta), r*np.sin(theta), c="green", linewidth=2, label="true circle")
-    ax.scatter(x[0,0], x[0,1], c="black", marker="x", s=100, label="input x")
-    ax.set_aspect("equal")
-    ax.legend()
-    ax.set_title("Training data and true circle")
-    ax = axes[1]
-    prob = model.forward(data).flatten()
-    sc = ax.scatter(data[:,0], data[:,1], c=prob, cmap="viridis", vmin=0, vmax=1, s=30)
-    boundary = np.abs(prob - 0.5) < 0.05
-    ax.scatter(data[boundary,0], data[boundary,1], c="white", s=40, label="estimated boundary")
-    ax.plot(r*np.cos(theta), r*np.sin(theta), c="green", linewidth=2)
-    ax.scatter(x[0,0], x[0,1], c="black", marker="x", s=100)
-    ax.set_aspect("equal")
-    ax.set_title("Predicted probability distribution")
-    plt.colorbar(sc, ax=ax, label="P(inside)")
+    plt.plot(r*np.cos(theta), r*np.sin(theta), c="green", linewidth=2, label="true circle")
+    plt.gca().set_aspect("equal")
+    plt.title(f"Training data")
+    plt.legend()
     plt.tight_layout()
+    plt.savefig(path)
+    plt.show()
+
+def plot_prediction(model, data, x, r, path):
+    plt.figure(figsize=(6, 6))
+    prob = model.forward(data).flatten()
+    sc = plt.scatter(data[:, 0], data[:, 1], c=prob, cmap="viridis", vmin=0, vmax=1, s=30)
+    boundary = np.abs(prob - 0.5) < 0.05
+    plt.scatter(data[boundary, 0], data[boundary, 1], c="white", s=40, label="estimated boundary")
+    theta = np.linspace(0, 2*np.pi, 400)
+    plt.plot(r*np.cos(theta), r*np.sin(theta), c="green", linewidth=2)
+    plt.scatter(x[0, 0], x[0, 1], c="black", marker="x", s=100)
+    plt.gca().set_aspect("equal")
+    plt.title(f"Model output")
+    plt.colorbar(sc, label="output value")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.show()
+
+def plot_loss(losses, path):
+    plt.figure(figsize = (6, 4))
+    plt.plot(losses)
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+    plt.title(f"Training Loss curve")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(path)
     plt.show()
 
 def generate_training_data(n = 300, r = 1.0, k = 2, seed = 0):
@@ -193,32 +204,45 @@ class Model:
 
 model = Model(2, 4, seed = args.seed)
 
+print(f"Seed: {args.seed}")
+
 # 学習率
 alpha = args.alpha
 epochs = args.epochs
+b_path = f"./img/{args.seed}-{epochs}-{alpha}"
 
+# 教師データの作成
 data, label = generate_training_data(args.n, args.r, k = 1.5, seed = 0)
+plot_data(data, label, r = args.r, path = f"{b_path}-data.png")
 
-# Train
+losses = []
+
+# 学習
 for _ in range(epochs):
+    totalloss = 0
     for i in range(len(data)):
         d = data[i:i+1]
         l = label[i:i+1]
         model.forward(d)
-        model.loss_calc(l)
+        loss_e = model.loss_calc(l)
         # print_vec("out", model.out)
         # print(f"{model.loss}")
         model.backward()
         model.step(alpha)
+        totalloss = totalloss + loss_e
+    loss = totalloss / len(data)
+    losses.append(loss)
 
+# 損失
 print(f"Loss: {model.loss}")
+plot_loss(losses, path = f"{b_path}-loss.png")
 
-# Infer
+# 推論
 x = np.array([[args.input[0], args.input[1]]])
 v = model.forward(x)
 
 print(f"Input: ({x[0][0]}, {x[0][1]})")
 print(f"Result: {v}")
 
-visualize(model, data, label, x, r = args.r)
+plot_prediction(model, data, x, r = args.r, path = f"{b_path}-prediction.png")
 
