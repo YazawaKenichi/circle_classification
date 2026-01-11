@@ -16,13 +16,13 @@ def get_args():
     parser.add_argument(
             "--epochs",
             type = int,
-            default = 30,
-            help = "epochs (default: 30)")
+            default = 100,
+            help = "epochs (default: 100)")
     parser.add_argument(
             "--alpha",
             type = float,
             default = 0.1,
-            help = "学習率 (default: 0.1)")
+            help = "学習率 (default: 0.0005)")
     parser.add_argument(
             "--seed",
             type = int,
@@ -31,13 +31,13 @@ def get_args():
     parser.add_argument(
             "-n",
             type = int,
-            default = 100,
-            help = "教師データの数 (default: 100)")
+            default = 1000,
+            help = "教師データの数 (default: 1000)")
     parser.add_argument(
             "-r",
             type = float,
-            default = 1,
-            help = "円の半径 (default: 1)")
+            default = 1.0,
+            help = "円の半径 (default: 1.0)")
     return parser.parse_args()
 
 args = get_args()
