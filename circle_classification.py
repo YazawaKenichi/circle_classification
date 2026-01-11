@@ -76,7 +76,8 @@ def generate_training_data(n = 300, r = 1.0, k = 2, seed = 0):
     for i in range(n):
         xi = x[i, 0]
         yi = x[i, 1]
-        if xi**2 + yi**2 <= (r + 0.1)**2 and xi**2 + yi**2 >= (r - 0.1)**2:
+        # if xi**2 + yi**2 <= (r + 0.1)**2 and xi**2 + yi**2 >= (r - 0.1)**2:
+        if xi**2 + yi**2 <= (r)**2:
             t[i, 0] = 1.0
         else:
             t[i, 0] = 0.0
@@ -89,10 +90,10 @@ class Affine:
         self.b = np.zeros(output_dimension)
     def forward(self, x):
         self.x = x
-        return x @ self.W - self.b
+        return x @ self.W + self.b
     def backward(self, dLdy):
         self.dLdW = self.x.T @ dLdy
-        self.dLdb = -1 * dLdy
+        self.dLdb = np.sum(dLdy, axis = 0, keepdims = True)
         dLdx = dLdy @ self.W.T
         return dLdx
 
@@ -103,7 +104,26 @@ class ReLU:
         self.x = x
         return np.where(x > 0, x, 0)
     def backward(self, dLdy):
-        return np.where(self.x > 0, dLdy, 0)
+        return np.where(self.x > 0, dLdy * 1, dLdy * 0)
+
+class LeakyReLU:
+    def __init__(self, alpha = 0.001):
+        self.x = None
+        self.alpha = alpha
+    def forward(self, x):
+        self.x = x
+        return np.where(x > 0, x, self.alpha * x)
+    def backward(self, dLdy):
+        return np.where(self.x > 0, dLdy * 1, dLdy * self.alpha)
+
+class Tanh:
+    def __init__(self):
+        self.y = None
+    def forward(self, x):
+        self.y = np.tanh(x)
+        return self.y
+    def backward(self, dLdy):
+        return dLdy * (1 - self.y**2)
 
 class Sigmoid:
     def __init__(self):
@@ -138,7 +158,7 @@ class Model:
                 ReLU(),
                 Affine(hidden_dimension, hidden_dimension, seed = seed + 1),
                 ReLU(),
-                Affine(hidden_dimension, 1, seed = seed + 2),
+                Affine(hidden_dimension, 1, seed = seed + 5),
                 Sigmoid(),
                 ]
         self.loss_function = Loss()
@@ -166,7 +186,7 @@ class Model:
                 layer.W = layer.W - alpha * layer.dLdW
                 layer.b = layer.b - alpha * layer.dLdb
 
-model = Model(2, 32, seed = int(time.time()))
+model = Model(2, 4, seed = int(time.time()))
 
 # 学習率
 alpha = args.alpha
@@ -186,11 +206,14 @@ for _ in range(epochs):
         model.backward()
         model.step(alpha)
 
+print(f"Loss: {model.loss}")
+
 # Infer
 x = np.array([[args.input[0], args.input[1]]])
 v = model.forward(x)
-print_vec("INPUT", x)
-print_vec("RESULT", v)
+
+print(f"Input: ({x[0][0]}, {x[0][1]})")
+print(f"Result: {v}")
 
 visualize(model, data, label, x, r = args.r)
 
